@@ -1,10 +1,12 @@
+#include <SoftwareSerial.h>
 
+SoftwareSerial mySerial(12, 11); // RX, TX
 
 void setup() {
   /* serial init */
-  Serial.begin(115200);
+  mySerial.begin(9600);
   /* se mide la bateria antes del uso del auto */
-  if(test_bat()) Serial.println("BAT OK"); else Serial.println("*** BAT ERROR ***"); 
+  if(test_bat()) mySerial.println("BAT OK"); else {mySerial.println("*** BAT ERROR ***"); while(1){}; }
 }
 
 void loop() {
@@ -13,17 +15,18 @@ void loop() {
 }
 
 /* *** test_bat() *** */
-/* Mide la batería y devuelve 1 si la tensión es mayor a 10 V. Prueba 5 veces si le llega el comando 0xBA que seria el identificador del master */
+/* Mide la batería y devuelve 1 si la tensión es mayor a 10 V. Manda un float con la tensión medida. */
 /* Ej:
-    Serial.begin(115200);
-    /* se mide la bateria antes del uso del auto */
-    if(test_bat()) Serial.println("BAT OK"); else Serial.println("*** BAT ERROR ***"); 
+    mySerial.begin(9600);
+    // se mide la bateria antes del uso del auto 
+    if(test_bat()) mySerial.println("BAT OK"); else {mySerial.println("*** BAT ERROR ***");while(1){} } 
 */
     
 int test_bat (){
 
-    int a = analogRead(2); // pin que mide la bateria
-	int vbat = map(a,0,1024,0,14); // rango de medida de 0 a 14 V.
-	if (vbat > 10) return 1;
+        int a = analogRead(2); // pin que mide la bateria
+	float vbat = a/1024.0*5.0; // rango de medida de 0 a 14 V.
+        mySerial.println(vbat);
+	if (vbat > 10.0) return 1;
 	else return 0;
 }
