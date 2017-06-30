@@ -23,8 +23,8 @@
 
 SoftwareSerial mySerial(12, 11); // RX, TX 
 
-char Buffer[2] = {0, 0}; // Buffer[0] : Adelante, Buffer[1] : Giro.
-byte baseSpeed = 175;
+char Buffer = 0;
+int baseSpeed = 175;
 
 void setup() {
     /* motores init */
@@ -35,33 +35,40 @@ void setup() {
     mySerial.begin(9600);
     /* master intenta comunicarse con arduino unos 5 intentos*/
     if(test_comm()) mySerial.println("LUISIMOVIL CONECTADO"); else {mySerial.println("*** COMM ERROR ***"); while(1){} }
+    delay(100);
     /* se mide la bateria antes del uso del auto */
     if(test_bat()) mySerial.println("BAT OK"); else {mySerial.println("*** BAT ERROR ***"); while(1){}; }
+    delay(100);
     
 }
 
 void loop() {
 
-    if ( Serial.available() > 0 ) {
-        Serial.readBytes(&Buffer[0], 1);
-        //Serial.flush();
+    if(mySerial.available() > 0){
+    
+        Buffer = mySerial.read();delay(20);
+        //mySerial.flush();
 
-        switch (Buffer[0])
+        switch (Buffer)
         {
           case 'F':
             mover_motores(INA_M1, INB_M1, INA_M2, INB_M2, EN_M, PWM_M1, PWM_M2, baseSpeed, baseSpeed);
+            mySerial.println("CASO F");
             break; 
     
           case 'B':
             mover_motores(INA_M1, INB_M1, INA_M2, INB_M2, EN_M, PWM_M1, PWM_M2,  -baseSpeed, -baseSpeed);
+            mySerial.println("CASO B"); 
             break;
     
           case 'L':
             mover_motores(INA_M1, INB_M1, INA_M2, INB_M2, EN_M, PWM_M1, PWM_M2,  baseSpeed, -baseSpeed);
+            mySerial.println("CASO L"); 
             break;
     
           case 'R':
             mover_motores(INA_M1, INB_M1, INA_M2, INB_M2, EN_M, PWM_M1, PWM_M2,  -baseSpeed, baseSpeed);
+            mySerial.println("CASO R"); 
             break;
     
           case 'G': /*Forward left*/
@@ -82,6 +89,7 @@ void loop() {
 
           default:
             apagar_motores(EN_M);
+            mySerial.println("APAGAR"); 
             break;
 
         }
@@ -101,11 +109,11 @@ int test_comm() {
   
     int fail = 0;
     boolean test = 0;
-    byte c;
+    char c;
     while(fail < 5){
         while(mySerial.available() < 1){}
-        c = mySerial.read(); // 0xBA
-  if(c == 0xBA){
+        c = mySerial.read(); // 0x6C
+  if(c == 'l'){
             test = true;
             break;
         }
@@ -121,10 +129,11 @@ int test_comm() {
 /* Mide la baterìa y la envía por BT. Si la tensiòn es < 10 V entonces el programa queda ahí. */
 
 int test_bat (){
-    int a = analogRead(2); // pin que mide la bateria
+    int a = analogRead(A3); // pin que mide la bateria
     float vbat = a/1024.0*5.0; // rango de medida de 0 a 14 V.
     mySerial.println(vbat);
-    if (vbat > 10.0) return 1;
+    //if (vbat > 10.0) return 1;
+    if (vbat > 4) return 1;
     else return 0;
 }
 
