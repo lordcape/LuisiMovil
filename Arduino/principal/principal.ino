@@ -131,9 +131,8 @@ int test_comm() {
 int test_bat (){
     int a = analogRead(A3); // pin que mide la bateria
     float vbat = a/1024.0*5.0; // rango de medida de 0 a 14 V.
-    mySerial.println(vbat);
-    //if (vbat > 10.0) return 1;
-    if (vbat > 4) return 1;
+    mySerial.println(vbat*14.0/5.0); // para pasarlo a volts.
+    if (vbat > 3.5) return 1; // 3.5 EQUIVALE A 10 V
     else return 0;
 }
 
