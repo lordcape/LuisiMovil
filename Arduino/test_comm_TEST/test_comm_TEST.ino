@@ -2,15 +2,23 @@
 
 SoftwareSerial mySerial(12, 11); // RX, TX
 
+char rec = '0';
+
 void setup() {
   /* serial init */
   mySerial.begin(9600);
+  Serial.begin(115200);
   /* master intenta comunicarse con arduino unos 5 intentos*/
-  if(test_comm()) mySerial.println("LUISIMOVIL CONECTADO"); else {mySerial.println("*** COMM ERROR ***"); while(1){} }
+  //if(test_comm()) mySerial.println("LUISIMOVIL CONECTADO"); else {mySerial.println("*** COMM ERROR ***"); while(1){} }
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
+
+     while(mySerial.available() < 1){}
+     rec = mySerial.read();
+     Serial.println(rec);
+     delay(20);
 
 }
 
