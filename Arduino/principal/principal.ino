@@ -17,14 +17,16 @@
 
 // M1 y M2
 
-#define FREQUENCY 700 // pwm freq. Hz
+#define FREQUENCY 600 // pwm freq. Hz
 #define EN_M  A1      // PIN A1
-#define VEL_MAX 80    // max speed %
+#define VEL_MAX 200    // max speed (0-255)
+
+#define BASESPEED 100  // ver este valor!!!
 
 SoftwareSerial mySerial(12, 11); // RX, TX
 
 char Buffer = 0;
-int baseSpeed = 175;
+int baseSpeed = BASESPEED;
 
 unsigned int k = 0;
 
@@ -63,7 +65,7 @@ void loop() {
         break;
 
       case 'B':
-        mover_motores(INA_M1, INB_M1, INA_M2, INB_M2, EN_M, PWM_M1, PWM_M2,  -baseSpeed, -baseSpeed);
+        mover_motores(INA_M1, INB_M1, INA_M2, INB_M2, EN_M, PWM_M1, PWM_M2,  -baseSpeed, -(baseSpeed));
         break;
 
       case 'L':
@@ -95,43 +97,43 @@ void loop() {
         break;
 
       case '0':
-        baseSpeed = 100;
+        baseSpeed = BASESPEED + 10;
         break;
 
       case '1':
-        baseSpeed = 110;
+        baseSpeed = BASESPEED + 10;
         break;
 
       case '2':
-        baseSpeed = 120;
+        baseSpeed = BASESPEED + 20;
         break;
 
       case '3':
-        baseSpeed = 130;
+        baseSpeed = BASESPEED + 30;
         break;
 
       case '4':
-        baseSpeed = 140;
+        baseSpeed = BASESPEED + 40;
         break;
 
       case '5':
-        baseSpeed = 150;
+        baseSpeed = BASESPEED + 50;
         break;
 
       case '6':
-        baseSpeed = 160;
+        baseSpeed = BASESPEED + 60;
         break;
 
       case '7':
-        baseSpeed = 170;
+        baseSpeed = BASESPEED + 70;
         break;
 
       case '8':
-        baseSpeed = 180;
+        baseSpeed = BASESPEED + 80;
         break;
 
       case '9':
-        baseSpeed = 200;
+        baseSpeed = BASESPEED + 100;
         break;
 
       default:
@@ -197,9 +199,9 @@ int test_bat () {
 /* Init de los pines de los puentes H. */
 
 void init_motores(int ina_m1, int inb_m1, int ina_m2, int inb_m2, int en) {
-  InitTimersSafe();
-  SetPinFrequencySafe(PWM_M1, FREQUENCY);
-  SetPinFrequencySafe(PWM_M2, FREQUENCY);
+  //InitTimersSafe();
+  //SetPinFrequencySafe(PWM_M1, FREQUENCY);
+  //SetPinFrequencySafe(PWM_M2, FREQUENCY);
   pinMode(ina_m1, OUTPUT);
   pinMode(inb_m1, OUTPUT);
   pinMode(ina_m2, OUTPUT);
@@ -231,12 +233,12 @@ void mover_motores(int ina_m1, int inb_m1, int ina_m2, int inb_m2, int en, int p
   else if (pwm1 < 0) {
     digitalWrite(ina_m1, 1);
     digitalWrite(inb_m1, 0);
-    speed_m1 = -pwm1;
+    speed_m1 = 255 + pwm1;
   }
   else {
     digitalWrite(en, 0);
   }
-  pwmWrite(PWM_M1, int(((constrain(speed_m1, 0, VEL_MAX)) / 100.0) * 255.0));
+  
   if (pwm2 > 0) {
     digitalWrite(ina_m2, 0);
     digitalWrite(inb_m2, 1);
@@ -245,12 +247,15 @@ void mover_motores(int ina_m1, int inb_m1, int ina_m2, int inb_m2, int en, int p
   else if (pwm2 < 0) {
     digitalWrite(ina_m2, 1);
     digitalWrite(inb_m2, 0);
-    speed_m2 = -pwm2;
+    speed_m2 = 255 + pwm2;
   }
   else {
     digitalWrite(en, 0);
   }
-  pwmWrite(PWM_M2, int(((constrain(speed_m2, 0, VEL_MAX)) / 100.0) * 255.0));
-
+  
+  //pwmWrite(PWM_M2, speed_m2);
+  //pwmWrite(PWM_M1, speed_m1);
+   analogWrite(PWM_M1, speed_m1);
+   analogWrite(PWM_M2, speed_m2);
 }
 
