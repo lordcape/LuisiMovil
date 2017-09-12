@@ -21,7 +21,7 @@
 #define EN_M  A1      // PIN A1
 #define VEL_MAX 200    // max speed (0-255)
 
-#define BASESPEED 100  // ver este valor!!!
+#define BASESPEED 200  // ver este valor!!!
 
 SoftwareSerial mySerial(12, 11); // RX, TX
 
@@ -29,6 +29,7 @@ char Buffer = 0;
 int baseSpeed = BASESPEED;
 
 unsigned int k = 0;
+unsigned int motor_stopped = 10;
 
 void setup() {
   /* motores init */
@@ -62,10 +63,16 @@ void loop() {
     {
       case 'F':
         mover_motores(INA_M1, INB_M1, INA_M2, INB_M2, EN_M, PWM_M1, PWM_M2, baseSpeed, baseSpeed);
+        if (motor_stopped > 0) {
+          motor_stopped--;
+        }
         break;
 
       case 'B':
         mover_motores(INA_M1, INB_M1, INA_M2, INB_M2, EN_M, PWM_M1, PWM_M2,  -baseSpeed, -(baseSpeed));
+        if (motor_stopped > 0) {
+          motor_stopped--;
+        }
         break;
 
       case 'L':
@@ -77,23 +84,24 @@ void loop() {
         break;
 
       case 'G': /*Forward left*/
-        mover_motores(INA_M1, INB_M1, INA_M2, INB_M2, EN_M, PWM_M1, PWM_M2,  1.2 * baseSpeed, 0.5 * baseSpeed);
+        mover_motores(INA_M1, INB_M1, INA_M2, INB_M2, EN_M, PWM_M1, PWM_M2,  1.2 * baseSpeed, 0.8 * baseSpeed);  // 1.2  0.5
         break;
 
       case 'I': /*  Forward Right */
-        mover_motores(INA_M1, INB_M1, INA_M2, INB_M2, EN_M, PWM_M1, PWM_M2,  0.5 * baseSpeed, 1.2 * baseSpeed);
+        mover_motores(INA_M1, INB_M1, INA_M2, INB_M2, EN_M, PWM_M1, PWM_M2,  0.8 * baseSpeed, 1.2 * baseSpeed);  // 0.5  1.2
         break;
 
       case 'H': /*  Back Left  */
-        mover_motores(INA_M1, INB_M1, INA_M2, INB_M2, EN_M, PWM_M1, PWM_M2,  -1.2 * baseSpeed, -0.5 * baseSpeed);
+        mover_motores(INA_M1, INB_M1, INA_M2, INB_M2, EN_M, PWM_M1, PWM_M2,  -1.2 * baseSpeed, -0.8 * baseSpeed);  // -1.2  -0.5
         break;
 
       case 'J':  /* Back Right  */
-        mover_motores(INA_M1, INB_M1, INA_M2, INB_M2, EN_M, PWM_M1, PWM_M2,  -0.5 * baseSpeed, -1.2 * baseSpeed);
+        mover_motores(INA_M1, INB_M1, INA_M2, INB_M2, EN_M, PWM_M1, PWM_M2,  -0.8 * baseSpeed, -1.2 * baseSpeed);  // -0.5  -1.2
         break;
 
       case 'S':
         apagar_motores(EN_M);
+        motor_stopped = 10;
         break;
 
       case '0':
@@ -138,12 +146,13 @@ void loop() {
 
       default:
         apagar_motores(EN_M);
+        motor_stopped = 10;
     }
-    
+
     k = 0; // como ya llegó el byte, reseteo el contador
-    
+
   }
-  
+
   else {
     k++;  // si no llega nada, aumento el k
     delay(1);
@@ -226,36 +235,46 @@ void mover_motores(int ina_m1, int inb_m1, int ina_m2, int inb_m2, int en, int p
   int speed_m2 = 0;
 
   if (pwm1 > 0) {
-    digitalWrite(ina_m1, 0);
-    digitalWrite(inb_m1, 1);
+    digitalWrite(ina_m1, 1);
+    digitalWrite(inb_m1, 0);
     speed_m1 = pwm1;
   }
   else if (pwm1 < 0) {
-    digitalWrite(ina_m1, 1);
-    digitalWrite(inb_m1, 0);
-    speed_m1 = 255 + pwm1;
+    digitalWrite(ina_m1, 0);
+    digitalWrite(inb_m1, 1);
+    speed_m1 = -pwm1;
   }
   else {
     digitalWrite(en, 0);
   }
-  
+
   if (pwm2 > 0) {
-    digitalWrite(ina_m2, 0);
-    digitalWrite(inb_m2, 1);
+    digitalWrite(ina_m2, 1);
+    digitalWrite(inb_m2, 0);
     speed_m2 = pwm2;
   }
   else if (pwm2 < 0) {
-    digitalWrite(ina_m2, 1);
-    digitalWrite(inb_m2, 0);
-    speed_m2 = 255 + pwm2;
+    digitalWrite(ina_m2, 0);
+    digitalWrite(inb_m2, 1);
+    speed_m2 = -pwm2;
   }
   else {
     digitalWrite(en, 0);
   }
-  
+
   //pwmWrite(PWM_M2, speed_m2);
   //pwmWrite(PWM_M1, speed_m1);
-   analogWrite(PWM_M1, speed_m1);
-   analogWrite(PWM_M2, speed_m2);
+
+  if (motor_stopped > 0) {
+
+    analogWrite(PWM_M1, 255);
+    analogWrite(PWM_M2, 255);
+
+  } else {
+
+    analogWrite(PWM_M1, speed_m1);
+    analogWrite(PWM_M2, speed_m2);
+  }
+
 }
 
